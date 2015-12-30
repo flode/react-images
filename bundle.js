@@ -1,4 +1,97 @@
 require=(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+// shim for using process in browser
+
+var process = module.exports = {};
+var queue = [];
+var draining = false;
+var currentQueue;
+var queueIndex = -1;
+
+function cleanUpNextTick() {
+    draining = false;
+    if (currentQueue.length) {
+        queue = currentQueue.concat(queue);
+    } else {
+        queueIndex = -1;
+    }
+    if (queue.length) {
+        drainQueue();
+    }
+}
+
+function drainQueue() {
+    if (draining) {
+        return;
+    }
+    var timeout = setTimeout(cleanUpNextTick);
+    draining = true;
+
+    var len = queue.length;
+    while(len) {
+        currentQueue = queue;
+        queue = [];
+        while (++queueIndex < len) {
+            if (currentQueue) {
+                currentQueue[queueIndex].run();
+            }
+        }
+        queueIndex = -1;
+        len = queue.length;
+    }
+    currentQueue = null;
+    draining = false;
+    clearTimeout(timeout);
+}
+
+process.nextTick = function (fun) {
+    var args = new Array(arguments.length - 1);
+    if (arguments.length > 1) {
+        for (var i = 1; i < arguments.length; i++) {
+            args[i - 1] = arguments[i];
+        }
+    }
+    queue.push(new Item(fun, args));
+    if (queue.length === 1 && !draining) {
+        setTimeout(drainQueue, 0);
+    }
+};
+
+// v8 likes predictible objects
+function Item(fun, array) {
+    this.fun = fun;
+    this.array = array;
+}
+Item.prototype.run = function () {
+    this.fun.apply(null, this.array);
+};
+process.title = 'browser';
+process.browser = true;
+process.env = {};
+process.argv = [];
+process.version = ''; // empty string to avoid regexp issues
+process.versions = {};
+
+function noop() {}
+
+process.on = noop;
+process.addListener = noop;
+process.once = noop;
+process.off = noop;
+process.removeListener = noop;
+process.removeAllListeners = noop;
+process.emit = noop;
+
+process.binding = function (name) {
+    throw new Error('process.binding is not supported');
+};
+
+process.cwd = function () { return '/' };
+process.chdir = function (dir) {
+    throw new Error('process.chdir is not supported');
+};
+process.umask = function() { return 0; };
+
+},{}],2:[function(require,module,exports){
 "use strict";
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -55,7 +148,7 @@ var Fade = _react2["default"].createClass({
 
 module.exports = Fade;
 
-},{"react":undefined}],2:[function(require,module,exports){
+},{"react":undefined}],3:[function(require,module,exports){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -80,7 +173,7 @@ module.exports = _react2['default'].createClass({
 	}
 });
 
-},{"./icons":6,"react":undefined}],3:[function(require,module,exports){
+},{"./icons":7,"react":undefined}],4:[function(require,module,exports){
 'use strict';
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -115,17 +208,17 @@ module.exports = _react2['default'].createClass({
 	}
 });
 
-},{"react":undefined,"react-dom":undefined}],4:[function(require,module,exports){
+},{"react":undefined,"react-dom":undefined}],5:[function(require,module,exports){
 'use strict';
 
 module.exports = '<svg fill="white" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 0 512 512" xml:space="preserve">' + '<path d="M213.7,256L213.7,256L213.7,256L380.9,81.9c4.2-4.3,4.1-11.4-0.2-15.8l-29.9-30.6c-4.3-4.4-11.3-4.5-15.5-0.2L131.1,247.9 c-2.2,2.2-3.2,5.2-3,8.1c-0.1,3,0.9,5.9,3,8.1l204.2,212.7c4.2,4.3,11.2,4.2,15.5-0.2l29.9-30.6c4.3-4.4,4.4-11.5,0.2-15.8 L213.7,256z"/>' + '</svg>';
 
-},{}],5:[function(require,module,exports){
+},{}],6:[function(require,module,exports){
 'use strict';
 
 module.exports = '<svg fill="white" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="100%" height="100%" viewBox="0 0 512 512" xml:space="preserve">' + '<path d="M298.3,256L298.3,256L298.3,256L131.1,81.9c-4.2-4.3-4.1-11.4,0.2-15.8l29.9-30.6c4.3-4.4,11.3-4.5,15.5-0.2l204.2,212.7 c2.2,2.2,3.2,5.2,3,8.1c0.1,3-0.9,5.9-3,8.1L176.7,476.8c-4.2,4.3-11.2,4.2-15.5-0.2L131.3,446c-4.3-4.4-4.4-11.5-0.2-15.8 L298.3,256z"/>' + '</svg>';
 
-},{}],6:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 'use strict';
 
 module.exports = {
@@ -133,7 +226,7 @@ module.exports = {
 	arrowRight: require('./arrowRight')
 };
 
-},{"./arrowLeft":4,"./arrowRight":5}],7:[function(require,module,exports){
+},{"./arrowLeft":5,"./arrowRight":6}],8:[function(require,module,exports){
 'use strict';
 
 Object.defineProperty(exports, '__esModule', {
@@ -235,6 +328,22 @@ var styles = {
 		msUserSelect: 'none',
 		userSelect: 'none'
 
+	},
+	caption: {
+		position: 'absolute',
+
+		// placed under the image
+		bottom: '-45px',
+
+		// center the caption within the dialog
+		left: '50%',
+		WebkitTransform: 'translate(-50%, 50%)',
+		MozTransform: 'translate(-50%, 50%)',
+		msTransform: 'translate(-50%, 50%)',
+		transform: 'translate(-50%, 50%)',
+
+		// visibility
+		color: 'white'
 	}
 };
 
@@ -242,6 +351,7 @@ exports['default'] = styles;
 module.exports = exports['default'];
 
 },{}],"react-images":[function(require,module,exports){
+(function (process){
 'use strict';
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
@@ -278,7 +388,7 @@ var _reactAddonsTransitionGroup2 = _interopRequireDefault(_reactAddonsTransition
 
 var PropTypes = _react2['default'].PropTypes;
 
-var BODY = document.body;
+var BODY = process.browser ? document.body : null;
 
 var Lightbox = _react2['default'].createClass({
 	displayName: 'Lightbox',
@@ -289,7 +399,8 @@ var Lightbox = _react2['default'].createClass({
 		height: PropTypes.number,
 		images: PropTypes.arrayOf(PropTypes.shape({
 			src: PropTypes.string.isRequired,
-			srcset: PropTypes.array
+			srcset: PropTypes.array,
+			caption: PropTypes.string
 		})).isRequired,
 		isOpen: PropTypes.bool,
 		onClickNext: PropTypes.func.isRequired,
@@ -331,10 +442,12 @@ var Lightbox = _react2['default'].createClass({
 			window.removeEventListener('keydown', this.handleKeyboardInput);
 		}
 
-		if (nextProps.isOpen) {
-			BODY.style.overflow = 'hidden';
-		} else {
-			BODY.style.overflow = null;
+		if (BODY != null) {
+			if (nextProps.isOpen) {
+				BODY.style.overflow = 'hidden';
+			} else {
+				BODY.style.overflow = null;
+			}
 		}
 	},
 
@@ -446,6 +559,8 @@ var Lightbox = _react2['default'].createClass({
 		var images = _props.images;
 		var currentImage = _props.currentImage;
 
+		var caption = images[currentImage].caption || "";
+
 		if (!images || !images.length) return;
 
 		if (images[currentImage].srcset) {
@@ -467,7 +582,12 @@ var Lightbox = _react2['default'].createClass({
 			_react2['default'].createElement(
 				_Fade2['default'],
 				{ key: 'image' + currentImage },
-				img
+				img,
+				_react2['default'].createElement(
+					'p',
+					{ style: this.props.styles.caption },
+					caption
+				)
 			)
 		);
 	},
@@ -493,4 +613,5 @@ var Lightbox = _react2['default'].createClass({
 
 module.exports = Lightbox;
 
-},{"./Fade":1,"./Icon":2,"./Portal":3,"./styles/default":7,"blacklist":undefined,"react":undefined,"react-addons-transition-group":undefined}]},{},[]);
+}).call(this,require('_process'))
+},{"./Fade":2,"./Icon":3,"./Portal":4,"./styles/default":8,"_process":1,"blacklist":undefined,"react":undefined,"react-addons-transition-group":undefined}]},{},[]);
